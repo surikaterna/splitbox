@@ -15,13 +15,17 @@ boxModule.directive('hbox', function() {
 		controller: function($scope) {
 		},
 		link: function(scope, element, attr) {
+			
 			var _isDragging = false;
+			var _modeHorizontal = element.prop('tagName') === 'HBOX';
+			console.log(element.prop('tagName'));
+
 			var splitter = element.children().eq(0);
 			var one = element.children().eq(1);
 			var two = element.children().eq(2);
-			element.addClass('horizontal');
-			one.addClass('pane');
-			two.addClass('pane');
+			element.addClass(_modeHorizontal ? 'horizontal' : 'vertical');
+			one.addClass('splitboxbox');
+			two.addClass('splitboxbox');
 			element.bind('mousemove', function(event) {
 				if(!_isDragging) {
 					return;
@@ -46,6 +50,15 @@ boxModule.directive('hbox', function() {
 			angular.element(document).bind('mouseup', function(event) {
 				_isDragging = false;
 			});
+
+//			var firstBounds = one.getBoundingClientRect();
+//			console.log(one);
+			var _init = function() {
+				splitter.css('top', 50 + '%');
+				two.css('top', 50 + '%');
+			}
+			_init();
+
 		}
 
 	}
