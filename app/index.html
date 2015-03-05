@@ -1,0 +1,58 @@
+<html ng-app="myApp">
+	<head>
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+		<meta charset="utf-8">
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	
+		<!-- JQUERY -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+		<!-- ANGULAR -->
+		<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular-sanitize.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.13/angular-ui-router.min.js"></script>
+		<script data-require="angular-resource@1.2.14" data-semver="1.2.14" src="http://code.angularjs.org/1.2.14/angular-resource.js"></script>
+
+		<!-- BOOTSTRAP -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+
+		<!-- FONTAWESOME -->
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+		<script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.11.0.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+		<script src="bundle.js"></script>		
+		<title>Mean IDE</title>
+		<style type="text/css">
+			.splitbox {
+				left:0px;
+				right:0px;
+				top:0px;
+				bottom: 0px;
+				position: absolute;
+			}
+			.splitter {
+				z-index:1000;
+				box-sizing: border-box;
+				background-color: red;
+				cursor: ns-resize;
+				height:2px;
+				position: relative;
+			}
+			.pane {
+				overflow: hidden;
+			}			
+		</style>
+	</head>
+	<body>
+		<div class="container-flud">
+			<hbox>
+				<div>a</div>
+				<div>b</div>
+			</hbox>	
+		</div>
+		<script type="text/javascript">
+			angular.module('myApp', ['ui.box']);
+		</script>
+	</body>
+</html>

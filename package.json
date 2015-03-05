@@ -1,0 +1,30 @@
+{
+  "name": "splitbox",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Andreas Karlsson",
+  "license": "MIT",
+  "dependencies": {
+    "browserify": "^9.0.3",
+    "browserify-shim": "^3.8.3",
+    "watchify": "^2.4.0"
+  },
+  "browserify": {
+    "transform": [
+      "browserify-shim"
+    ]
+  },  
+  "browserify-shim": {
+    "angular": {
+      "exports": "global:angular",
+      "depends": "global:$"
+    },
+    "jquery": {
+      "exports": "$"
+    }
+  }
+}
