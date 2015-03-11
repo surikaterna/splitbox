@@ -132,7 +132,13 @@ boxModule.directive('window', function () {
 		link:  function(scope, element, attr) {
 			element.bind('drop', function(event) {
 				console.log(event);
-				console.log('ondragend');
+				console.log(event.dataTransfer);
+				console.log(event.originalEvent.dataTransfer.types);
+				console.log('drop');
+			});
+			element.bind('dragend', function(event) {
+				console.log(event);
+				console.log('dragend');
 			});
 			element.bind('dragover', function(event) {
 				event.preventDefault();
@@ -154,9 +160,9 @@ boxModule.directive('pane', function () {
 		controller: function($scope) {
 		},
 		link:  function(scope, element, attr) {
-			element.bind('dragstrat', function() {
+			element.bind('dragstart', function() {
 				console.log('dragstart');
-				event.dataTransfer.setData('text', 'Hello World!');
+				event.dataTransfer.setData('text/plain', 'Hello World!');
 			});
 		}
       };
