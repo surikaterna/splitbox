@@ -140,9 +140,56 @@ boxModule.directive('window', function () {
 				console.log(event);
 				console.log('dragend');
 			});
+			element.bind('dragenter', function(event) {
+				console.log(event.target);
+				console.log(this);
+				if(event.target === this) {
+					console.log('dragenter');
+					console.log(event);
+					$(this).append("<div class='windowdrop top'></div>");
+					event.preventDefault();
+				}
+				event.stopPropagation();
+			});
+
+			element.bind('dragleave', function(event) {
+				$(this).children(".windowdrop").remove();
+
+				console.log('dragleave');
+			});
+
 			element.bind('dragover', function(event) {
 				event.preventDefault();
-				//console.log('dragging');
+				event.stopPropagation();
+				var target = event.currentTarget;
+				var bounds = target.getBoundingClientRect();				
+//				console.log(bounds);
+//				console.log(event.clientY);
+				var height = bounds.bottom - bounds.top;
+				var width = bounds.right - bounds.left;
+			    var posY = event.originalEvent.clientY - bounds.top;
+			    var posX = event.originalEvent.clientX - bounds.left;
+				var pctY = posY/height;
+				var pctX = posX/width;
+//				console.log(pctX/pctY);
+				//calculate slopes
+				var oAD = pctX/pctY>1;
+				var oCB = pctX/(1-pctY)<=1;
+
+/*				if(oAD) {
+					if(oCB) {
+						console.log('TOP');
+					} else {
+						console.log('RIGHT');
+					}
+				} else {
+					if(oCB) {
+						console.log('LEFT');
+					} else {
+						console.log('BOTTOM');
+					}
+				}
+*/				
 			});
 		}
       };
