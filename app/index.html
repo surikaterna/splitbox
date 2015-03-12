@@ -64,22 +64,13 @@
 				position: absolute;
 				background-color: pink;
 			}
-			.windowdrop {
-				z-index:1000;
-				background-color: blue;
+			.splitdroparea {
+				z-index:10000;
+				background: rgba(0, 0, 0, 0.05);
 				position: absolute;
-			}
-			.windowdrop.top {
-				top:0px;
-				left:0px;
-				right:0px;
-				bottom:50%;
-			}
-			.windowdrop.bottom {
-				top:50%;
-				left:0px;
-				right:0px;
-				bottom:0px;
+				pointer-events:none;
+				box-sizing:border-box;
+				cursor: default;
 			}
 		</style>
 	</head>
