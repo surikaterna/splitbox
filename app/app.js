@@ -130,6 +130,14 @@ boxModule.directive('window', function () {
 		controller: function($scope) {
 		},
 		link:  function(scope, element, attr) {
+			var splitArea = $('body').children('.splitdroparea');
+			if(!splitArea.length) {
+				splitArea = $('<div class="splitdroparea" style="display:none;"></div>');
+				splitArea.appendTo($('body'));
+				console.log("adding splitArea");
+			}
+
+
 			element.bind('drop', function(event) {
 				console.log(event);
 				console.log(event.dataTransfer);
@@ -139,23 +147,14 @@ boxModule.directive('window', function () {
 			element.bind('dragend', function(event) {
 				console.log(event);
 				console.log('dragend');
+				splitArea.hide();
 			});
 			element.bind('dragenter', function(event) {
-				console.log(event.target);
-				console.log(this);
-				if(event.target === this) {
-					console.log('dragenter');
-					console.log(event);
-					$(this).append("<div class='windowdrop top'></div>");
-					event.preventDefault();
-				}
 				event.stopPropagation();
+				splitArea.show();
 			});
 
 			element.bind('dragleave', function(event) {
-				$(this).children(".windowdrop").remove();
-
-				console.log('dragleave');
 			});
 
 			element.bind('dragover', function(event) {
@@ -176,20 +175,28 @@ boxModule.directive('window', function () {
 				var oAD = pctX/pctY>1;
 				var oCB = pctX/(1-pctY)<=1;
 
-/*				if(oAD) {
+				var offset = element.offset();
+				if(oAD) {
 					if(oCB) {
-						console.log('TOP');
+							splitArea.offset({top:offset.top, left:offset.left});
+							splitArea.width(width);
+							splitArea.height(height/2);
 					} else {
-						console.log('RIGHT');
+							splitArea.offset({top:offset.top, left:offset.left+width/2});
+							splitArea.width(width/2);
+							splitArea.height(height);
 					}
 				} else {
 					if(oCB) {
-						console.log('LEFT');
+							splitArea.offset({top:offset.top, left:offset.left});
+							splitArea.width(width/2);
+							splitArea.height(height);
 					} else {
-						console.log('BOTTOM');
+							splitArea.offset({top:offset.top+height/2, left:offset.left});
+							splitArea.width(width);
+							splitArea.height(height/2);
 					}
 				}
-*/				
 			});
 		}
       };
