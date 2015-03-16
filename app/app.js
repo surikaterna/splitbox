@@ -82,7 +82,6 @@ var _makeDirective = function(direction) {
 	}
 }
 
-
 boxModule.directive('hbox', function() {
 	return _makeDirective('horizontal');
 });
@@ -122,6 +121,7 @@ function windowController($scope) {
 	var ctrl = this;
 	var panes = ctrl.panes = $scope.panes = [];
 	ctrl.select = function(selectedPane) {
+		console.log("select this");
 		angular.forEach(panes, function(pane) {
 			if(pane.active && pane !== selectedPane) {
 				pane.active = false;
@@ -159,7 +159,8 @@ boxModule.directive('window', function () {
 		scope: {
 			orientation: '@'
 		},
-		template: '<div class="window"><div ng-transclude></div></div>',
+		template: '<div class="window"><div class="window-header"><div ng-repeat="pane in vm.panes" draggable="true" ng-class="{active: pane.active}" ng-click="pane.select()">{{pane.caption}}</div></div><div class="window-content"><div ng-transclude></div></div></div>',
+		controllerAs: 'vm',
 		controller: 'WindowController',
 		link:  function(scope, element, attr, windowController) {
 			var splitArea = $('body').children('.splitdroparea');
@@ -168,21 +169,19 @@ boxModule.directive('window', function () {
 				splitArea.appendTo($('body'));
 				console.log("adding splitArea");
 			}
+			var container = element.children('.window-content');
 
-
-			element.bind('drop', function(event) {
+			container.bind('drop', function(event) {
 				console.log('drop');
 				console.log(event);
-				console.log(event.originalEvent.dataTransfer.types);
+				console.log(event.originalEvent.dataTransfer.types[0]);
 				var area = getAreaFromEvent(event);
-				console.log(event.target);
-				console.log(element);
-				console.log(area);
 				var scp = angular.element(event.target).scope();
 				console.log(scp);
-				windowController.addPane(scp);
+				//windowController.addPane(scp);
 				console.log(windowController);
 				console.log('/drop');
+				console.log(scope);
 			});
 			element.bind('dragend', function(event) {
 				console.log('dragend');
@@ -193,25 +192,24 @@ boxModule.directive('window', function () {
 					console.log('dropped');
 				}
 			});
-			element.bind('dragenter', function(event) {
+			container.bind('dragenter', function(event) {
 				event.stopPropagation();
 				splitArea.show();
 			});
 
-			element.bind('dragleave', function(event) {
+			container.bind('dragleave', function(event) {
+
 			});
 
-			element.bind('dragover', function(event) {
+			container.bind('dragover', function(event) {
 				event.preventDefault();
 				event.stopPropagation();
 				var target = event.currentTarget;
 				var bounds = target.getBoundingClientRect();				
-//				console.log(bounds);
-//				console.log(event.clientY);
 				var height = bounds.bottom - bounds.top;
 				var width = bounds.right - bounds.left;
 
-				var offset = element.offset();
+				var offset = container.offset();
 				var area = getAreaFromEvent(event);
 				switch(area) {
 					case AREAS.TOP:
@@ -280,6 +278,8 @@ function getArea(bounds, posX, posY) {
 	}
 }
 
+var paneId = 0;
+
 boxModule.directive('pane', function () {
       return {
 		restrict: 'E',
@@ -292,15 +292,14 @@ boxModule.directive('pane', function () {
 			onSelect:'&select',
 			onDeselect: '&deselect'
 		},
-		controller: function() {},
-		template: '<div class="pane" draggable="true"><div ng-transclude></div></div>',
+		template: '<div id="{{id}}" class="pane" draggable="true" ng-show="active"><div ng-transclude></div></div>',
 		controller: function($scope) {
 		},
 /*		compile: function(element, attr, transclusion) {
 			return 
 		},*/
 		link:  function(scope, element, attr, windowCtrl) {
-
+			scope.id = 'pane' + paneId++;
 			windowCtrl.addPane(scope);
 			scope.$watch('active', function(active) {
           		if (active) {
@@ -313,11 +312,9 @@ boxModule.directive('pane', function () {
 			scope.$on('$destroy', function() {
 				windowCtrl.removePane(scope);
 			});
-			console.log("CONTROL:");
-			console.log(windowCtrl);
 			element.bind('dragstart', function() {
 				console.log('dragstart');
-				event.dataTransfer.setData('application/x-lx-pane', 'Hello World!');
+				event.dataTransfer.setData('application/x-lx-pane', scope.id);
 			});
 		}
       };
