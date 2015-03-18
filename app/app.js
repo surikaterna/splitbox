@@ -9,9 +9,7 @@ var _makeDirective = function(direction) {
 		restrict: 'E',
 		replace: true,
 		transclude: true,
-		scope: {
-			orientation: '@'
-		},
+		scope: {},
 		template: '<div class="splitbox"><div class="splitter ng-resize"><div> </div></div><div ng-transclude-replace/></div>',
 		controller: function($scope) {
 		},
@@ -82,7 +80,6 @@ var _makeDirective = function(direction) {
 	}
 }
 
-
 boxModule.directive('hbox', function() {
 	return _makeDirective('horizontal');
 });
@@ -122,6 +119,7 @@ function windowController($scope) {
 	var ctrl = this;
 	var panes = ctrl.panes = $scope.panes = [];
 	ctrl.select = function(selectedPane) {
+		console.log("select this");
 		angular.forEach(panes, function(pane) {
 			if(pane.active && pane !== selectedPane) {
 				pane.active = false;
@@ -133,12 +131,14 @@ function windowController($scope) {
 	}
 
 	ctrl.addPane = function(pane) {
-		console.log('add pane ');
-		console.log(pane);
 		panes.push(pane);
-		ctrl.select(pane);
+		if(panes.length === 1) {
+			ctrl.select(pane);
+		}
 	}
 	ctrl.removePane = function(pane) {
+		console.log('REMOVE PANE');
+		console.log(pane);
 		var index = panes.indexOf(pane);
 		if(pane.active && panes.length > 1) {
 			 var newActiveIndex = index == panes.length - 1 ? index - 1 : index + 1;
@@ -150,16 +150,17 @@ function windowController($scope) {
 
 boxModule.controller('WindowController', windowController);
 
-boxModule.directive('window', function () {
+boxModule.directive('window', function ($compile) {
       return {
 		restrict: 'E',
 		replace: true,
 		transclude: true,
 		require:'window',
 		scope: {
-			orientation: '@'
+			
 		},
-		template: '<div class="window"><div ng-transclude></div></div>',
+		template: '<div class="window"><div class="window-header"><div ng-repeat="pane in vm.panes" ng-class="{active: pane.active}" ng-click="pane.select()">{{pane.caption}}</div></div><div class="window-content" ng-transclude></div></div>',
+		controllerAs: 'vm',
 		controller: 'WindowController',
 		link:  function(scope, element, attr, windowController) {
 			var splitArea = $('body').children('.splitdroparea');
@@ -168,21 +169,54 @@ boxModule.directive('window', function () {
 				splitArea.appendTo($('body'));
 				console.log("adding splitArea");
 			}
+			var container = element.children('.window-content');
 
-
-			element.bind('drop', function(event) {
+			container.bind('drop', function(event) {
 				console.log('drop');
 				console.log(event);
-				console.log(event.originalEvent.dataTransfer.types);
+				var paneId = event.originalEvent.dataTransfer.getData('application/x-lx-window-pane');
+				console.log('*** Dropped Pane: ' + paneId);
+				/*for(var i=0;i<event.originalEvent.dataTransfer.types.length;i++) {
+					var type = event.originalEvent.dataTransfer.types[i];
+					console.log(type + '=');
+					console.log(event.originalEvent.dataTransfer.getData(type));
+				}*/
 				var area = getAreaFromEvent(event);
-				console.log(event.target);
-				console.log(element);
-				console.log(area);
-				var scp = angular.element(event.target).scope();
+				var sourcePane = $('#'+ paneId);
+				console.log('source pane length ' + sourcePane.length);
+				var scp = angular.element(sourcePane).scope();
 				console.log(scp);
-				windowController.addPane(scp);
+				scp = scp.$$childHead
+				console.log(scp);
+				console.log(scope);
+				var newPane = $('<pane caption="' + scp.caption + '"></pane>');
+				$compile(newPane)(scope, undefined, {window: windowController});
+				
+				console.log("new:")
+				console.log(newPane);
+				console.log("source:")
+				console.log(sourcePane);
+				//newPane.empty();
+				//sourcePane.children().appendTo(newPane);
+				//newPane.appendTo(this);
+				sourcePane.appendTo(this);
+				scp.remove();
+
+//				scope.$apply(function() {
+//					scp.remove();
+					console.log(sourcePane);
+//					sourcePane.remove();
+					console.log('!!!REMOVED');
+//					windowController.addPane(scp);
+//				});
+				console.log(scp);
+				console.log(area);
 				console.log(windowController);
 				console.log('/drop');
+				console.log(scope);
+				event.stopPropagation();
+				event.preventDefault();
+				splitArea.hide();
 			});
 			element.bind('dragend', function(event) {
 				console.log('dragend');
@@ -190,28 +224,44 @@ boxModule.directive('window', function () {
 				splitArea.hide();
 				//successfully dropped?
 				if(event.originalEvent.dataTransfer.dropEffect !== 'none') {
-					console.log('dropped');
+					console.log('dropped successfully');
 				}
 			});
-			element.bind('dragenter', function(event) {
-				event.stopPropagation();
-				splitArea.show();
+			container.bind('dragenter', function(event) {
+				for(var i=0;i<event.originalEvent.dataTransfer.types.length;i++) {
+					var type = event.originalEvent.dataTransfer.types[i];
+					if(type==='application/x-lx-window-pane') {
+						event.stopPropagation();
+						splitArea.show();
+						return;
+					} 
+				}
 			});
 
-			element.bind('dragleave', function(event) {
+			container.bind('dragleave', function(event) {
+
 			});
 
-			element.bind('dragover', function(event) {
+			container.bind('dragover', function(event) {
+				var found = false;
+				for(var i=0;i<event.originalEvent.dataTransfer.types.length;i++) {
+					var type = event.originalEvent.dataTransfer.types[i];
+					if(type==='application/x-lx-window-pane') {
+						found = true;
+						break;
+					} 		
+				}
+				if(!found) {
+					return;
+				}
 				event.preventDefault();
 				event.stopPropagation();
 				var target = event.currentTarget;
 				var bounds = target.getBoundingClientRect();				
-//				console.log(bounds);
-//				console.log(event.clientY);
 				var height = bounds.bottom - bounds.top;
 				var width = bounds.right - bounds.left;
 
-				var offset = element.offset();
+				var offset = container.offset();
 				var area = getAreaFromEvent(event);
 				switch(area) {
 					case AREAS.TOP:
@@ -280,6 +330,8 @@ function getArea(bounds, posX, posY) {
 	}
 }
 
+var paneId = 0;
+
 boxModule.directive('pane', function () {
       return {
 		restrict: 'E',
@@ -292,32 +344,43 @@ boxModule.directive('pane', function () {
 			onSelect:'&select',
 			onDeselect: '&deselect'
 		},
-		controller: function() {},
-		template: '<div class="pane" draggable="true"><div ng-transclude></div></div>',
+		template: '<div id="{{id}}" class="pane" draggable="true" ng-show="active"><div ng-transclude></div></div>',
 		controller: function($scope) {
 		},
 /*		compile: function(element, attr, transclusion) {
 			return 
 		},*/
 		link:  function(scope, element, attr, windowCtrl) {
-
+			var ctrl = windowCtrl;
+			scope.id = 'wnd-pane' + paneId++;
+			console.log('creating pane: ' + scope.id);
 			windowCtrl.addPane(scope);
 			scope.$watch('active', function(active) {
           		if (active) {
-		            windowCtrl.select(scope);
+		            ctrl.select(scope);
     	    	}
        		});
        		scope.select = function() {
        			scope.active = true;
        		}
+       		scope.remove = function() {
+				ctrl.removePane(scope);
+       		}
+
+       		scope.moveTo = function(newController) {
+       			scope.remove();
+       			ctrl = newController;
+       			newController.addPane(scope);
+       		}
+
 			scope.$on('$destroy', function() {
-				windowCtrl.removePane(scope);
+				console.log('destroying: ' + scope.id);
+				scope.remove();
 			});
-			console.log("CONTROL:");
-			console.log(windowCtrl);
 			element.bind('dragstart', function() {
 				console.log('dragstart');
-				event.dataTransfer.setData('application/x-lx-pane', 'Hello World!');
+				//event.dataTransfer.setData('application/x-lx-window-pane', JSON.stringify({pane: scope.id, browserWindow:'master'}));
+				event.dataTransfer.setData('application/x-lx-window-pane', scope.id);
 			});
 		}
       };
