@@ -194,6 +194,7 @@ boxModule.directive('window', function ($compile) {
 				splitArea.appendTo($('body'));
 				console.log("adding splitArea");
 			}
+			var headerContainer = element.children('.window-header');
 			var container = element.children('.window-content');
 
 			container.bind('drop', function(event) {
@@ -210,14 +211,16 @@ boxModule.directive('window', function ($compile) {
 				console.log(scpO);
 				var scp = scpO.$$childHead;
 				console.log(scp);
-				var newPane = createPane('dead');
+				var newPane = angular.element('<pane caption="test"></pane>');
 				
 				//newPane.empty();
 				//sourceContentPane.children().appendTo(newPane);
 				newPane.append(sourceContentPane.contents());
-				newPane.appendTo(this);
-				//scpO.$destroy();
-				//sourcePane.remove();
+				$compile(newPane)(scope.$new(true), undefined, {window: windowController});
+				newPane.appendTo(headerContainer);
+				console.log(newPane);
+				scpO.$destroy();
+				sourcePane.remove();
 				event.stopPropagation();
 				event.preventDefault();
 				splitArea.hide();
