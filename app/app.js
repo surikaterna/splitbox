@@ -156,6 +156,8 @@ function windowController($scope) {
 
 boxModule.controller('WindowController', windowController);
 
+//
+
 boxModule.directive('window', function ($compile) {
       return {
 		restrict: 'E',
@@ -165,7 +167,7 @@ boxModule.directive('window', function ($compile) {
 		scope: {
 			
 		},
-		template: '<div class="window"><div class="window-header"><div ng-repeat="pane in vm.panes" ng-class="{active: pane.active}" ng-click="pane.select()">{{pane.caption}}</div><div ng-click="add()">add</div></div><div class="window-content" ng-transclude></div></div>',
+		template: '<div class="window"><div class="window-header" ng-transclude></div><div class="window-content"><div ng-repeat="pane in panes" ng-show="pane.active" pane-content-transclude="pane" id="{{id}}-content"></div></div>',
 		controllerAs: 'vm',
 		controller: 'WindowController',
 		link:  function(scope, element, attr, windowController) {
@@ -202,15 +204,20 @@ boxModule.directive('window', function ($compile) {
 	
 				var area = getAreaFromEvent(event);
 				var sourcePane = $('#'+ paneId);
+				var sourceContentPane = $('#'+ paneId+"-content");
 				console.log(sourcePane);
-				var scp = angular.element(sourcePane).scope().$$childHead;
-				var newPane = createPane(scp.caption);
+				var scpO = angular.element(sourcePane).scope();
+				console.log(scpO);
+				var scp = scpO.$$childHead;
+				console.log(scp);
+				var newPane = createPane('dead');
 				
-				newPane.empty();
-				//sourcePane.children().appendTo(newPane);
-				newPane.append(sourcePane.contents());
+				//newPane.empty();
+				//sourceContentPane.children().appendTo(newPane);
+				newPane.append(sourceContentPane.contents());
 				newPane.appendTo(this);
-				sourcePane.remove();
+				//scpO.$destroy();
+				//sourcePane.remove();
 				event.stopPropagation();
 				event.preventDefault();
 				splitArea.hide();
@@ -341,45 +348,106 @@ boxModule.directive('pane', function () {
 			onSelect: '&select',
 			onDeselect: '&deselect'
 		},
-		template: '<div id="{{id}}" class="pane" draggable="true" ng-show="active"><div ng-transclude></div></div>',
+		//template: '<div id="{{id}}" class="pane" draggable="true" ng-show="active"><div ng-transclude></div></div>',
+		template: '<div id="{{id}}" ng-class="{active: active}"><a href draggable="true" ng-click="select()" pane-caption-transclude>{{caption}}</a></div>',
 		controller: function($scope) {
 		},
 /*		compile: function(element, attr, transclusion) {
 			return 
 		},*/
-		link:  function(scope, element, attr, windowCtrl) {
-			scope.id = 'wnd-pane' + paneId++;
-			console.log('Creating pane ' + scope.id + " || " + scope.caption);
-			console.log(scope);
-			scope.active = false;
-			windowCtrl.addPane(scope);
-			scope.$watch('active', function(active) {
-          		if (active) {
-		            windowCtrl.select(scope);
-    	    	}
-       		});
-       		scope.select = function() {
-       			console.log("Selected " + scope.caption);
-       			console.log(windowCtrl);
-       			scope.active = true;
-//       			windowCtrl.select(scope);
-       		}
-       		scope.remove = function() {
-       			console.log("Removing " + scope.caption);
-				windowCtrl.removePane(scope);
-       		}
+		compile: function(element, attrs, transclude) {
 
-			element.on('$destroy', function() {
-				console.log('destroying: ' + scope.id);
-				scope.remove();
-				scope.$destroy();
-			});
-			element.bind('dragstart', function() {
-				console.log('dragstart');
-				//event.dataTransfer.setData('application/x-lx-window-pane', JSON.stringify({pane: scope.id, browserWindow:'master'}));
-				event.dataTransfer.setData('application/x-lx-window-pane', scope.id);
-			});
+			return function postLink(scope, element, attr, windowCtrl) {
+				scope.id = 'wnd-pane' + paneId++;
+				console.log('Creating pane ' + scope.id + " || " + scope.caption);
+				console.log(scope);
+				scope.active = false;
+				windowCtrl.addPane(scope);
+				scope.$watch('active', function(active) {
+	          		if (active) {
+			            windowCtrl.select(scope);
+	    	    	}
+	       		});
+	       		scope.select = function() {
+	       			console.log("Selected " + scope.caption);
+	       			console.log(windowCtrl);
+	       			scope.active = true;
+	//       			windowCtrl.select(scope);
+	       		}
+	       		scope.remove = function() {
+	       			console.log("Removing " + scope.caption);
+					windowCtrl.removePane(scope);
+	       		}
+	       		scope.$on('$destroy', function() {
+					console.log('destroying scope: ' + scope.id);
+	       		});
+
+				element.on('$destroy', function() {
+					console.log('destroying element: ' + scope.id);
+					console.log('destroying element: ' + element);
+					scope.remove();
+					scope.$destroy();
+				});
+				element.bind('dragstart', function() {
+					console.log('dragstart');
+					//event.dataTransfer.setData('application/x-lx-window-pane', JSON.stringify({pane: scope.id, browserWindow:'master'}));
+					event.dataTransfer.setData('application/x-lx-window-pane', scope.id);
+				});
+				scope.$transcludeFn = transclude;			
+			}
 		}
       };
-  })	;
+  });
 
+boxModule.directive('paneCaptionTransclude', function() {
+  return {
+    restrict: 'A',
+    require: '^pane',
+    link: function(scope, elm, attrs, tabCtrl) {
+    	console.log("**** LINK ****");
+      scope.$watch('captionElement', function updateHeadingElement(caption) {
+        if (caption) {
+          elm.html('');
+          elm.append(caption);
+        }
+      });
+    }
+  };
+});
+
+boxModule.directive('paneContentTransclude', function() {
+  return {
+    restrict: 'A',
+    require: '^window',
+    link: function(scope, elm, attrs) {
+      console.log('content transclude');
+      console.log('pane');
+      console.log(attrs.paneContentTransclude);
+      var pane = scope.$eval(attrs.paneContentTransclude);
+      console.log(pane);
+      scope.id = pane.id;
+      //elm.id = pane.id + "-content";
+
+      //Now our tab is ready to be transcluded: both the tab heading area
+      //and the tab content area are loaded.  Transclude 'em both.
+      pane.$transcludeFn(pane.$parent, function(contents) {
+        angular.forEach(contents, function(node) {
+          if (isPaneCaption(node)) {
+            //Let tabHeadingTransclude know.
+            pane.captionElement = node;
+          } else {
+            elm.append(node);
+          }
+        });
+      });
+    }
+  };
+  function isPaneCaption(node) {
+    return node.tagName &&  (
+      node.hasAttribute('pane-caption') ||
+      node.hasAttribute('data-pane-caption') ||
+      node.tagName.toLowerCase() === 'pane-caption' ||
+      node.tagName.toLowerCase() === 'data-pane-caption'
+    );
+  }
+});
