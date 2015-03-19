@@ -119,8 +119,10 @@ function windowController($scope) {
 	var ctrl = this;
 	var panes = ctrl.panes = $scope.panes = [];
 	ctrl.select = function(selectedPane) {
-		console.log("select this");
+		console.log("select " + selectedPane.id + " || " + selectedPane.caption);
+		console.log(ctrl);
 		angular.forEach(panes, function(pane) {
+			console.log(pane);
 			if(pane.active && pane !== selectedPane) {
 				pane.active = false;
 				pane.onDeselect();
@@ -137,14 +139,18 @@ function windowController($scope) {
 		}
 	}
 	ctrl.removePane = function(pane) {
-		console.log('REMOVE PANE');
+		console.log('REMOVE PANE' + pane.caption);
 		console.log(pane);
 		var index = panes.indexOf(pane);
-		if(pane.active && panes.length > 1) {
+		/*if(pane.active && panes.length > 1) {
 			 var newActiveIndex = index == panes.length - 1 ? index - 1 : index + 1;
 			ctrl.select(panes[newActiveIndex]);
-		}
+		}*/
 		panes.splice(index, 1);
+		ctrl.select(panes[0]);
+	}
+	ctrl.createPane = function(caption, content) {
+		
 	}
 }
 
@@ -159,10 +165,27 @@ boxModule.directive('window', function ($compile) {
 		scope: {
 			
 		},
-		template: '<div class="window"><div class="window-header"><div ng-repeat="pane in vm.panes" ng-class="{active: pane.active}" ng-click="pane.select()">{{pane.caption}}</div></div><div class="window-content" ng-transclude></div></div>',
+		template: '<div class="window"><div class="window-header"><div ng-repeat="pane in vm.panes" ng-class="{active: pane.active}" ng-click="pane.select()">{{pane.caption}}</div><div ng-click="add()">add</div></div><div class="window-content" ng-transclude></div></div>',
 		controllerAs: 'vm',
 		controller: 'WindowController',
 		link:  function(scope, element, attr, windowController) {
+			var self = this;
+
+			function createPane(caption) {
+					var newPane = $('<pane caption="'+caption+'"></pane>');
+					var childScope = scope.$new(true);
+					$compile(newPane)(childScope, undefined, {window: windowController});					
+					return newPane;
+			}
+
+			scope.add = function() {
+				console.log('### NEW');
+					var pane = createPane('**new**');
+					pane.appendTo(container);
+					pane.html('test');
+			};
+
+
 			var splitArea = $('body').children('.splitdroparea');
 			if(!splitArea.length) {
 				splitArea = $('<div class="splitdroparea" style="display:none;"></div>');
@@ -176,44 +199,18 @@ boxModule.directive('window', function ($compile) {
 				console.log(event);
 				var paneId = event.originalEvent.dataTransfer.getData('application/x-lx-window-pane');
 				console.log('*** Dropped Pane: ' + paneId);
-				/*for(var i=0;i<event.originalEvent.dataTransfer.types.length;i++) {
-					var type = event.originalEvent.dataTransfer.types[i];
-					console.log(type + '=');
-					console.log(event.originalEvent.dataTransfer.getData(type));
-				}*/
+	
 				var area = getAreaFromEvent(event);
 				var sourcePane = $('#'+ paneId);
-				console.log('source pane length ' + sourcePane.length);
-				var scp = angular.element(sourcePane).scope();
-				console.log(scp);
-				scp = scp.$$childHead
-				console.log(scp);
-				console.log(scope);
-				var newPane = $('<pane caption="' + scp.caption + '"></pane>');
-				$compile(newPane)(scope, undefined, {window: windowController});
-				
-				console.log("new:")
-				console.log(newPane);
-				console.log("source:")
 				console.log(sourcePane);
-				//newPane.empty();
+				var scp = angular.element(sourcePane).scope().$$childHead;
+				var newPane = createPane(scp.caption);
+				
+				newPane.empty();
 				//sourcePane.children().appendTo(newPane);
-				//newPane.appendTo(this);
-				sourcePane.appendTo(this);
-				scp.remove();
-
-//				scope.$apply(function() {
-//					scp.remove();
-					console.log(sourcePane);
-//					sourcePane.remove();
-					console.log('!!!REMOVED');
-//					windowController.addPane(scp);
-//				});
-				console.log(scp);
-				console.log(area);
-				console.log(windowController);
-				console.log('/drop');
-				console.log(scope);
+				newPane.append(sourcePane.contents());
+				newPane.appendTo(this);
+				sourcePane.remove();
 				event.stopPropagation();
 				event.preventDefault();
 				splitArea.hide();
@@ -341,7 +338,7 @@ boxModule.directive('pane', function () {
 		scope: {
 			caption: '@',
 			active: '=?',
-			onSelect:'&select',
+			onSelect: '&select',
 			onDeselect: '&deselect'
 		},
 		template: '<div id="{{id}}" class="pane" draggable="true" ng-show="active"><div ng-transclude></div></div>',
@@ -351,31 +348,31 @@ boxModule.directive('pane', function () {
 			return 
 		},*/
 		link:  function(scope, element, attr, windowCtrl) {
-			var ctrl = windowCtrl;
 			scope.id = 'wnd-pane' + paneId++;
-			console.log('creating pane: ' + scope.id);
+			console.log('Creating pane ' + scope.id + " || " + scope.caption);
+			console.log(scope);
+			scope.active = false;
 			windowCtrl.addPane(scope);
 			scope.$watch('active', function(active) {
           		if (active) {
-		            ctrl.select(scope);
+		            windowCtrl.select(scope);
     	    	}
        		});
        		scope.select = function() {
+       			console.log("Selected " + scope.caption);
+       			console.log(windowCtrl);
        			scope.active = true;
+//       			windowCtrl.select(scope);
        		}
        		scope.remove = function() {
-				ctrl.removePane(scope);
+       			console.log("Removing " + scope.caption);
+				windowCtrl.removePane(scope);
        		}
 
-       		scope.moveTo = function(newController) {
-       			scope.remove();
-       			ctrl = newController;
-       			newController.addPane(scope);
-       		}
-
-			scope.$on('$destroy', function() {
+			element.on('$destroy', function() {
 				console.log('destroying: ' + scope.id);
 				scope.remove();
+				scope.$destroy();
 			});
 			element.bind('dragstart', function() {
 				console.log('dragstart');
