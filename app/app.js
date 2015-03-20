@@ -10,7 +10,7 @@ var _makeDirective = function(direction) {
 		replace: true,
 		transclude: true,
 		scope: {},
-		template: '<div class="splitbox"><div class="splitter ng-resize"><div> </div></div><div ng-transclude-replace/></div>',
+		template: '<div class="splitbox"><div class="splitter ng-resize"><div> </div></div><div lx-transclude-replace/></div>',
 		controller: function($scope) {
 		},
 		link:  function(scope, element, attr) {
@@ -89,7 +89,7 @@ boxModule.directive('vbox', function() {
 });
 
 
-boxModule.directive('ngTranscludeReplace', ['$log', function ($log) {
+boxModule.directive('lxTranscludeReplace', ['$log', function ($log) {
       return {
           terminal: true,
           restrict: 'EA',
@@ -101,7 +101,7 @@ boxModule.directive('ngTranscludeReplace', ['$log', function ($log) {
                              'No parent directive that requires a transclusion found. ');
                   return;
               }
-              transclude(function (clone) {
+              transclude($element.scope(), function (clone) {
                   if (clone.length) {
                       $element.replaceWith(clone);
                   }
@@ -112,6 +112,20 @@ boxModule.directive('ngTranscludeReplace', ['$log', function ($log) {
           }
       };
   }]);
+
+boxModule.directive('lxTransclude', ['$log', function ($log) {
+    "use strict";
+    return {
+        "restrict": "A",
+        "link": function (scope, element, attrs, nullCtrl, transcludeFn) {
+            var elScope = element.scope();
+
+            transcludeFn(elScope, function (clone) {
+                element.append(clone);
+            });
+        }
+    };
+}]);
 
 windowController.$inject = ['$scope'];
 
@@ -167,7 +181,7 @@ boxModule.directive('window', function ($compile) {
 		scope: {
 			
 		},
-		template: '<div class="window"><div class="window-header" ng-transclude></div><div class="window-content"><div ng-repeat="pane in panes" ng-show="pane.active" pane-content-transclude="pane" id="{{id}}-content"></div></div>',
+		template: '<div class="window"><div class="window-header" lx-transclude></div><div class="window-content"><div ng-repeat="pane in panes" ng-show="pane.active" pane-content-transclude="pane" id="{{id}}-content"></div></div>',
 		controllerAs: 'vm',
 		controller: 'WindowController',
 		link:  function(scope, element, attr, windowController) {
