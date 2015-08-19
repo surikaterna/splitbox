@@ -61,8 +61,6 @@ var _makeDirective = function(direction) {
 		_isDragging = false;
 	});
 
-//			var firstBounds = one.getBoundingClientRect();
-//			console.log(one);
 	var _init = function() {
 		if(_modeHorizontal) {
 			one.css('height', '50%')
@@ -133,10 +131,7 @@ function windowController($scope) {
 	var ctrl = this;
 	var panes = ctrl.panes = $scope.panes = [];
 	ctrl.select = function(selectedPane) {
-		console.log("select " + selectedPane.id + " || " + selectedPane.caption);
-		console.log(ctrl);
 		angular.forEach(panes, function(pane) {
-			console.log(pane);
 			if(pane.active && pane !== selectedPane) {
 				pane.active = false;
 				pane.onDeselect();
@@ -153,15 +148,11 @@ function windowController($scope) {
 		}
 	}
 	ctrl.removePane = function(pane) {
-		console.log('REMOVE PANE' + pane.caption);
-		console.log(pane);
 		var index = panes.indexOf(pane);
-		/*if(pane.active && panes.length > 1) {
-			 var newActiveIndex = index == panes.length - 1 ? index - 1 : index + 1;
-			ctrl.select(panes[newActiveIndex]);
-		}*/
 		panes.splice(index, 1);
-		ctrl.select(panes[0]);
+		if(panes.length > 0) {
+			ctrl.select(panes[0]);
+		}
 	}
 	ctrl.createPane = function(caption, content) {
 		
@@ -186,62 +177,40 @@ boxModule.directive('window', function ($compile) {
 		controller: 'WindowController',
 		link:  function(scope, element, attr, windowController) {
 			var self = this;
-
 			function createPane(caption) {
 					var newPane = $('<pane caption="'+caption+'"></pane>');
 					var childScope = scope.$new(true);
-					$compile(newPane)(childScope, undefined, {window: windowController});					
+					$compile(newPane)(childScope, undefined, {window: windowC});					
 					return newPane;
 			}
-
-			scope.add = function() {
-				console.log('### NEW');
-					var pane = createPane('**new**');
-					pane.appendTo(container);
-					pane.html('test');
-			};
-
 
 			var splitArea = $('body').children('.splitdroparea');
 			if(!splitArea.length) {
 				splitArea = $('<div class="splitdroparea" style="display:none;"></div>');
 				splitArea.appendTo($('body'));
-				console.log("adding splitArea");
 			}
 			var headerContainer = element.children('.window-header');
 			var container = element.children('.window-content');
 
 			container.bind('drop', function(event) {
-				console.log('drop');
-				console.log(event);
 				var paneId = event.originalEvent.dataTransfer.getData('application/x-lx-window-pane');
-				console.log('*** Dropped Pane: ' + paneId);
-	
 				var area = getAreaFromEvent(event);
 				var sourcePane = $('#'+ paneId);
 				var sourceContentPane = $('#'+ paneId+"-content");
-				console.log(sourcePane);
-				var scpO = angular.element(sourcePane).scope();
-				console.log(scpO);
-				var scp = scpO.$$childHead;
-				console.log(scp);
-				var newPane = angular.element('<pane caption="test"></pane>');
+
+				var scp = angular.element(sourceContentPane).scope().pane;
+				var newPane = angular.element('<pane caption="' + scp.caption + '"></pane>');
 				
-				//newPane.empty();
-				//sourceContentPane.children().appendTo(newPane);
 				newPane.append(sourceContentPane.contents());
-				$compile(newPane)(scope.$new(true), undefined, {window: windowController});
 				newPane.appendTo(headerContainer);
-				console.log(newPane);
-				scpO.$destroy();
+				$compile(newPane)(scope.$new(true), undefined, {window:windowController});
+				scp.$destroy();
 				sourcePane.remove();
 				event.stopPropagation();
 				event.preventDefault();
 				splitArea.hide();
 			});
 			element.bind('dragend', function(event) {
-				console.log('dragend');
-				console.log(event);
 				splitArea.hide();
 				//successfully dropped?
 				if(event.originalEvent.dataTransfer.dropEffect !== 'none') {
@@ -365,19 +334,13 @@ boxModule.directive('pane', function () {
 			onSelect: '&select',
 			onDeselect: '&deselect'
 		},
-		//template: '<div id="{{id}}" class="pane" draggable="true" ng-show="active"><div ng-transclude></div></div>',
 		template: '<div id="{{id}}" ng-class="{active: active}"><a href draggable="true" ng-click="select()" pane-caption-transclude>{{caption}}</a></div>',
 		controller: function($scope) {
 		},
-/*		compile: function(element, attr, transclusion) {
-			return 
-		},*/
 		compile: function(element, attrs, transclude) {
 
 			return function postLink(scope, element, attr, windowCtrl) {
 				scope.id = 'wnd-pane' + paneId++;
-				console.log('Creating pane ' + scope.id + " || " + scope.caption);
-				console.log(scope);
 				scope.active = false;
 				windowCtrl.addPane(scope);
 				scope.$watch('active', function(active) {
@@ -386,30 +349,21 @@ boxModule.directive('pane', function () {
 	    	    	}
 	       		});
 	       		scope.select = function() {
-	       			console.log("Selected " + scope.caption);
-	       			console.log(windowCtrl);
 	       			scope.active = true;
 	//       			windowCtrl.select(scope);
 	       		}
 	       		scope.remove = function() {
-	       			console.log("Removing " + scope.caption);
 					windowCtrl.removePane(scope);
 	       		}
-	       		scope.$on('$destroy', function() {
-					console.log('destroying scope: ' + scope.id);
-	       		});
 
 				element.on('$destroy', function() {
-					console.log('destroying element: ' + scope.id);
-					console.log('destroying element: ' + element);
 					scope.remove();
 					scope.$destroy();
 				});
-				element.bind('dragstart', function() {
-					console.log('dragstart');
-					//event.dataTransfer.setData('application/x-lx-window-pane', JSON.stringify({pane: scope.id, browserWindow:'master'}));
-					event.dataTransfer.setData('application/x-lx-window-pane', scope.id);
-				});
+				element.bind('dragstart', function(event) {
+					event.originalEvent.dataTransfer.setData('application/x-lx-window-pane', scope.id);
+  					event.originalEvent.dataTransfer.setData('Text', 'gosu');
+  				});
 				scope.$transcludeFn = transclude;			
 			}
 		}
@@ -421,7 +375,6 @@ boxModule.directive('paneCaptionTransclude', function() {
     restrict: 'A',
     require: '^pane',
     link: function(scope, elm, attrs, tabCtrl) {
-    	console.log("**** LINK ****");
       scope.$watch('captionElement', function updateHeadingElement(caption) {
         if (caption) {
           elm.html('');
@@ -437,13 +390,8 @@ boxModule.directive('paneContentTransclude', function() {
     restrict: 'A',
     require: '^window',
     link: function(scope, elm, attrs) {
-      console.log('content transclude');
-      console.log('pane');
-      console.log(attrs.paneContentTransclude);
       var pane = scope.$eval(attrs.paneContentTransclude);
-      console.log(pane);
       scope.id = pane.id;
-      //elm.id = pane.id + "-content";
 
       //Now our tab is ready to be transcluded: both the tab heading area
       //and the tab content area are loaded.  Transclude 'em both.

@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "browserify test/app.js > test/bundle.js",
+    "watch": "watchify test/app.js -o test/bundle.js -dv"
   },
   "author": "Andreas Karlsson",
   "license": "MIT",
