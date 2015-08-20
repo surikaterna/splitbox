@@ -10,10 +10,13 @@
 		<script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
 
 		<!-- ANGULAR -->
-		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+<!--		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular-sanitize.min.js"></script>
+-->		
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.28/angular.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.28/angular-sanitize.min.js"></script>
+		<script data-require="angular-resource@1.2.14" data-semver="1.2.14" src="http://code.angularjs.org/1.2.28/angular-resource.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.13/angular-ui-router.min.js"></script>
-		<script data-require="angular-resource@1.2.14" data-semver="1.2.14" src="http://code.angularjs.org/1.2.14/angular-resource.js"></script>
 
 		<!-- BOOTSTRAP -->
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
@@ -93,25 +96,24 @@
 				overflow-y: hidden;
 				flex-direction: row;
 			}
-			.window-header div {
+			.window-header div>a {
 				position: relative;
 				float:left;
 				min-width: 97px;
 				margin: 0 20px;
 				padding: 0 10px;
-				background-color: white;
 				font-size: 11px;
 				cursor:pointer;
 			}
-			.window-header div.active {
+			.window-header div.active>a{
  				background-color: #DFDFDF;
 			}			
-			.window-header div:hover {
+			.window-header div>a:hover {
 				transition: background-color 0.3s ease;
 				background-color: #DFDFDF;
 			}
 
-[draggable] {
+*[draggable=true] {
   -moz-user-select: none;
   -khtml-user-select: none;
   -webkit-user-select: none;
@@ -120,6 +122,9 @@
   -khtml-user-drag: element;
   -webkit-user-drag: element;
 }
+
+
+
 
 /*
  *  STYLE 3
