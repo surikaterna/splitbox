@@ -1,6 +1,6 @@
 {
   "name": "splitbox",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -10,6 +10,9 @@
   },
   "author": "Andreas Karlsson",
   "license": "MIT",
+  "devDependencies": {
+    "node-sass": "^3.4.2"
+  },
   "dependencies": {
     "browserify": "^9.0.3",
     "browserify-shim": "^3.8.3",
@@ -28,8 +31,5 @@
     "jquery": {
       "exports": "$"
     }
-  },
-  "devDependencies": {
-    "node-sass": "^3.4.2"
   }
 }
