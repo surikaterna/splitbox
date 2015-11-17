@@ -1,14 +1,18 @@
 {
   "name": "splitbox",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "browserify test/app.js > test/bundle.js",
+    "build-sass": "node-sass css/splitbox.scss > css/splitbox.css",
+    "build": "npm run build-sass && browserify test/app.js > test/bundle.js",
     "watch": "watchify test/app.js -o test/bundle.js -dv"
   },
   "author": "Andreas Karlsson",
   "license": "MIT",
+  "devDependencies": {
+    "node-sass": "^3.4.2"
+  },
   "dependencies": {
     "browserify": "^9.0.3",
     "browserify-shim": "^3.8.3",
@@ -18,7 +22,7 @@
     "transform": [
       "browserify-shim"
     ]
-  },  
+  },
   "browserify-shim": {
     "angular": {
       "exports": "global:angular",
