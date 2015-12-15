@@ -1,6 +1,6 @@
 {
   "name": "splitbox",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,7 @@
     "transform": [
       "browserify-shim"
     ]
-  },  
+  },
   "browserify-shim": {
     "angular": {
       "exports": "global:angular",
