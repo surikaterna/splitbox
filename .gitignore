@@ -1,4 +1,2 @@
 node_modules
-app/bundle.js
-app/.bundle.js
 test/bundle.js
