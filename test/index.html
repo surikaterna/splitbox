@@ -15,21 +15,21 @@
 	<script src="bundle.js"></script>
 
 	<script type="text/javascript">
-		angular.module('myApp', ['ui.splitbox']);
+		angular.module('myApp', ['ui.box']);
 	</script>
 </head>
 
 <body>
 
-<hbox>
+<hbox one-min-size="100" one-size="20" name="hb1">
   <div style="background:#3498db">
     Top content
   </div>
-  <vbox>
+  <vbox name="vb2" one-size="30">
     <div style="background:#e67e22">
       bottom left content
     </div>
-    <hbox>
+    <hbox name="hb3" one-size="70">
       <div style="background:#f1c40f">bottom right - top section</div>
       <div style="background:#e74c3c">bottom right - bottom section</div>
     </hbox>
